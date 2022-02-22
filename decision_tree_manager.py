@@ -1,4 +1,5 @@
-import pandas
+import pandas as pd
+import numpy as np
 class DecisionTreeEngine(object):
 
     def __init__(self, file_name, cost_function):
@@ -35,6 +36,18 @@ class DecisionTreeEngine(object):
             return
         elif self.df_description[input_col] == 'categortcal':
             return
+    def gini(self, ps):
+        '''calculates gini function
+        input: - ps an object of type pandas Series over which we want to compute gini function
+        output:- gini index value
+        '''
+        if isinstance(ps,pd.Series):
+            p=ps.value_counts()/len(ps)
+            return 1- np.sum(p**2)
+        else:
+            raise('the object must be a pandas Series ')
+
+
 
     def calculate_lowest_cost(self):
         return

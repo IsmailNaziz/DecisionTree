@@ -1,7 +1,9 @@
 import os
 import random
-from numpy import random
+import numpy as np
 import pandas as pd
+
+
 class GeneratorManager(object):
     '''
     Features:
@@ -27,29 +29,28 @@ class GeneratorManager(object):
 
     you need to implement the method run()
     '''
-    def __init__(self,csv_name,n_columns,n_rows=0,col_names=[]):
-        self.csv_name=csv_name
-        self.n_columns=n_columns
-        self.n_rows=n_rows
-        self.col_names=['column {}'.format(i) for i in range(self.n_columns)]
-    def set_col_names(self, col_names):
-        assert (len(col_names)==self.n_columns), 'Your col_name list should have the same size as the number of columns'
-        self.col_names=col_names
+    def __init__(self, file_name, nb_columns, nb_rows=0, col_names=None):
+        self.file_name = file_name
+        self.nb_columns = nb_columns
+        self.nb_rows = nb_rows
+        self.col_names = self._set_col_names(col_names)
+        self.output_folder = r'..\DecisionTree\inputs'
+
+    def _set_col_names(self, col_names):
+        if col_names is None:
+            return ['column {}'.format(i) for i in range(self.nb_columns)]
+        elif len(col_names) != self.nb_columns:
+            raise ValueError('Your col_name list should have the same size as the number of columns')
+        
+        return col_names
+
     def run(self):
-        self.set_col_names(self.col_names)
-        df = pd.DataFrame(columns=self.col_names)
-        for col in self.col_names:
-            df[col]=random.rand(self.n_rows)
-        os.makedirs('..\DecisionTree\inputs', exist_ok=True)
-        df.to_csv('..\DecisionTree\inputs\ '+self.csv_name)
-
-        return
-
-
+        df = pd.DataFrame(np.random.randint(0, 100, size=(self.nb_rows, self.nb_columns)), columns=self.col_names)
+        os.makedirs(self.output_folder, exist_ok=True)
+        df.to_csv('{}/{}'.format(self.output_folder, self.file_name))
 
 
 if __name__=='__main__':
-    parameters_set = {'csv_name':'out','n_columns':3,'n_rows':10}
+    parameters_set = {'file_name': 'out', 'nb_columns': 3, 'nb_rows': 10}
     GM = GeneratorManager(**parameters_set)
-    GM.set_col_names(['A','B','C'])
     GM.run()

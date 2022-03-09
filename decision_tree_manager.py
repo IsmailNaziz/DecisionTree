@@ -52,26 +52,26 @@ class DecisionTreeEngine(object):
         return
 
     def select_best_split(self, x, y):
-        '''ALL COLUMNS + GINI
-        return threshhold + col or col'''
+        """ALL COLUMNS + GINI
+        return threshold + col or col"""
         if y.size <= 1:
             return None, None
-        best_threshold = None
-
+        best_feature, best_threshold = None, None
+        best_gini = self.gini(y)
         for col in x.columns:
             sorted_samples, classes = zip(*sorted(zip(x[col], y)))
             classes = pd.DataFrame(classes)
-            best_gini = self.gini(classes)
+            # print('best threshold: {} best gini {}'.format(best_threshold, best_gini))
             for i in range(1, len(sorted_samples)):
                 gini_left = self.gini(classes[:i])
                 gini_right = self.gini(classes[i:])
                 gini = (classes[:i].size / y.size) * gini_left + (classes[i:].size / y.size) * gini_right
-                if gini <= best_gini:
+                if gini < best_gini:
                     best_gini = gini
                     best_feature = col
-                    best_threshold = (sorted_samples[i-1] + sorted_samples[i]) / 2
+                    best_threshold = (sorted_samples[i - 1] + sorted_samples[i]) / 2
 
-        print('best threshold: {} best gini {}'.format(best_threshold, best_gini))
+        # print('best threshold: {} best gini {}'.format(best_threshold, best_gini))
         return best_feature, best_threshold
 
     def calculate_cost(self, df, input_col, output_col):
@@ -84,7 +84,7 @@ class DecisionTreeEngine(object):
 
     def gini(self, y):
 
-        return 1 - ((y.value_counts() / len(y)) ** 2).sum()
+        return 1 - ((y.value_counts() / y.shape[0]) ** 2).sum()
 
     def calculate_lowest_cost(self):
         return
@@ -100,13 +100,14 @@ class DecisionTreeEngine(object):
         node = Node()
         if depth < self.max_depth:
             feature, tr = self.select_best_split(x, y)
-            node.feature = feature
-            node.threshold = tr
-            df = pd.concat([x, y], axis=1)
-            df_left = df[df[feature] <= tr]
-            df_right = df[df[feature] >= tr]
-            node.left = self.generate_tree(df_left[x.columns], df_left['target'], depth=depth +1)
-            node.right = self.generate_tree(df_right[x.columns], df_right['target'], depth=depth +1)
+            if feature is not None:
+                node.feature = feature
+                node.threshold = tr
+                df = pd.concat([x, y], axis=1)
+                df_left = df[df[feature] <= tr]
+                df_right = df[df[feature] > tr]
+                node.left = self.generate_tree(df_left[x.columns], df_left['target'], depth=depth + 1)
+                node.right = self.generate_tree(df_right[x.columns], df_right['target'], depth=depth + 1)
         return node
 
     def fit(self, x, y):
@@ -125,13 +126,12 @@ class DecisionTreeEngine(object):
 
 
 if __name__ == '__main__':
-    clf = DecisionTreeEngine(max_depth=3)
+    clf = DecisionTreeEngine(max_depth=10)
     df = pd.DataFrame({
-                   'points': [11, 7, 8, 10, 13, 13],
-                   'assists': [5, 7, 7, 9, 12, 9],
-                   'target': [1, 0, 0, 1, 1, 0]})
+        'A': [5, 7, 7, 9, 12, 91, 5, 3553, 1, 365],
+        'B': [11, 7, 80, 100, 13, 13, 11, 10, 154, 1155],
+        'target': [1, 0, 0, 1, 1, 0, 0, 1, 1, 0]})
     y = df['target']
     x = df.drop(['target'], axis=1)
     clf.fit(x, y)
-    #clf.select_best_split(x, y)
-
+    print(clf.select_best_split(x, y))

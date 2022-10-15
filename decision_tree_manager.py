@@ -66,8 +66,10 @@ class DecisionTreeEngine(object):
                 gini_left = self.gini(classes[:i])
                 gini_right = self.gini(classes[i:])
                 gini = (classes[:i].size / y.size) * gini_left + (classes[i:].size / y.size) * gini_right
+
                 if gini < best_gini:
                     best_gini = gini
+                    print('gini= ', best_gini)
                     best_feature = col
                     best_threshold = (sorted_samples[i - 1] + sorted_samples[i]) / 2
 
@@ -98,7 +100,7 @@ class DecisionTreeEngine(object):
         '''
 
         node = Node()
-        if depth < self.max_depth:
+        if depth <= self.max_depth:
             feature, tr = self.select_best_split(x, y)
             if feature is not None:
                 node.feature = feature
@@ -126,7 +128,7 @@ class DecisionTreeEngine(object):
 
 
 if __name__ == '__main__':
-    clf = DecisionTreeEngine(max_depth=10)
+    clf = DecisionTreeEngine(max_depth=50)
     df = pd.DataFrame({
         'A': [5, 7, 7, 9, 12, 91, 5, 3553, 1, 365],
         'B': [11, 7, 80, 100, 13, 13, 11, 10, 154, 1155],
@@ -135,3 +137,4 @@ if __name__ == '__main__':
     x = df.drop(['target'], axis=1)
     clf.fit(x, y)
     print(clf.select_best_split(x, y))
+
